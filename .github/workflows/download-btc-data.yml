@@ -1,0 +1,34 @@
+name: Download BTC 5-min historical data
+
+on:
+  workflow_dispatch:  # اجرای دستی
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # محدوده ماه‌ها: هر رانر گروهی از ماه‌ها را می‌گیرد
+        chunk: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+      fail-fast: false
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run parallel download script
+        run: python download_parallel.py --chunk ${{ matrix.chunk }}
+
+      - name: Upload CSV results
+        uses: actions/upload-artifact@v4
+        with:
+          name: btc-data-chunk-${{ matrix.chunk }}
+          path: output_chunk_*.csv
+          retention-days: 7
